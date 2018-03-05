@@ -17,11 +17,14 @@ for file in glob.glob("master*.json"):
 data = list()
 for k in json_data:
   for d in json_data[k]:
-    #print("**** ", d)
     try:
-      data.append(tc.preprocess.preprocess_text(d["full_text"], transliterate=True, no_urls=True, no_emails=True))
+      data.append(tc.preprocess.preprocess_text(d["full_text"],
+       transliterate=True, no_urls=True, no_emails=True))
     except:
-      data.append(tc.preprocess.preprocess_text(d["text"], transliterate=True, no_urls=True, no_emails=True))
+      data.append(tc.preprocess.preprocess_text(d["text"],
+       transliterate=True, no_urls=True, no_emails=True))
 
-
-
+# next tokenize for word based LM (and do other needed things)
+# anohter version for char based
+# use Spacy word2vec (or something else) to convert words to vec
+# both for input to RNN and for conditional
