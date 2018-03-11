@@ -34,15 +34,28 @@ for k in json_data:
     temp = temp.strip("\r\n")
     temp = temp.replace("\n", " ")
     temp = temp.replace("\t", " ")
+    temp = temp.replace("*EMAIL*", "")
+    temp = temp.replace("*URL*", "")
+    temp = temp.replace("&amp", "")
+    temp = temp.replace("-", "")
+    temp = temp.replace(".", "")
+
     data.append(temp)
 
 
 words = set()
 chars = set()
-count = 0
+# add <START> and <EOS> to the vocs.
+#words.add("<START>")
+#words.add("<EOS>")
+#chars.add("<START>")
+#chars.add("<EOS>")
+#  For now it  is  not acally used.
+
+#count = 2
 tweet_to_tokens = {}
 for tweet in data:
-  print(count)
+  #print(count)
   count += 1
   doc = nlp(tweet)
   tweet_to_tokens[tweet] = doc
@@ -58,11 +71,16 @@ words = list(words)
 print("#chars: ", len(chars))
 print("#words:", len(words))
 
+words = sorted(words)
+chars = sorted(chars)
+words = ["<START>", "<EOS>"] + words
+chars = ["<START>", "<EOS>"] + chars
 
-words_to_ids = {w: id + 1 for id, w in enumerate(sorted(words))}
+words_to_ids = {w: id + 3 for id, w in enumerate(words)}
 ids_to_words = {words_to_ids[x]: x for x in words_to_ids}
-chars_to_ids = {w: id + 1 for id, w in enumerate(sorted(chars))}
+chars_to_ids = {w: id + 3 for id, w in enumerate(chars)}
 ids_to_chars = {chars_to_ids[x]: x for x in chars_to_ids}
+
 
 # save data
 with open(outdir + "/word2id.txt", "w") as wif:
@@ -96,7 +114,7 @@ with open(outdir + "/wordid_data.txt", "w") as f:
     f.write(ostr + "\n")
 
 
-
+# another script for dividing to train/test sets
 
 
 # outputs: 1 raw tweets, 2 tweets in integer format
