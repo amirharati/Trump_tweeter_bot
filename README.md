@@ -6,3 +6,11 @@ During test we can just feed the given word vector  to the model.
 
 data:
 https://github.com/bpb27/trump_tweet_data_archive
+
+https://github.com/ryanmcdermott/trump-speeches
+
+https://github.com/paigecm/2016-campaign
+
+https://github.com/andrewts129/transcript-scraping
+
+https://github.com/rtlee9/Trump-bot/tree/master/data/trump/speeches

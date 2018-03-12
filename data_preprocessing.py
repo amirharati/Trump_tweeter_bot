@@ -28,17 +28,26 @@ data = list()
 for k in json_data:
   for d in json_data[k]:
     try:
-      temp = tc.preprocess.preprocess_text(tc.preprocess.normalize_whitespace(d["full_text"]), transliterate=True, no_urls=True, no_emails=True)
+      temp = d["full_text"]
     except:
-      temp = tc.preprocess.preprocess_text(tc.preprocess.normalize_whitespace(d["text"]), transliterate=True, no_urls=True, no_emails=True)
+      temp = d["text"]
+
     temp = temp.strip("\r\n")
     temp = temp.replace("\n", " ")
     temp = temp.replace("\t", " ")
+    temp = tc.preprocess.normalize_whitespace(tc.preprocess.preprocess_text(temp, transliterate=True, no_urls=True, no_emails=True))
     temp = temp.replace("*EMAIL*", "")
     temp = temp.replace("*URL*", "")
     temp = temp.replace("&amp", "")
+    temp = temp.replace("&lt", "")
+    temp = temp.replace("&gt", "")
     temp = temp.replace("-", "")
     temp = temp.replace(".", "")
+    temp = temp.replace("    ", " ")
+    temp = temp.replace("   ", " ")
+    temp = temp.replace("  ", "")
+
+
 
     data.append(temp)
 
@@ -52,10 +61,10 @@ chars = set()
 #chars.add("<EOS>")
 #  For now it  is  not acally used.
 
-#count = 2
+count = 0
 tweet_to_tokens = {}
 for tweet in data:
-  #print(count)
+  print(count)
   count += 1
   doc = nlp(tweet)
   tweet_to_tokens[tweet] = doc
@@ -76,9 +85,9 @@ chars = sorted(chars)
 words = ["<START>", "<EOS>"] + words
 chars = ["<START>", "<EOS>"] + chars
 
-words_to_ids = {w: id + 3 for id, w in enumerate(words)}
+words_to_ids = {w: id + 1 for id, w in enumerate(words)}
 ids_to_words = {words_to_ids[x]: x for x in words_to_ids}
-chars_to_ids = {w: id + 3 for id, w in enumerate(chars)}
+chars_to_ids = {w: id + 1 for id, w in enumerate(chars)}
 ids_to_chars = {chars_to_ids[x]: x for x in chars_to_ids}
 
 
