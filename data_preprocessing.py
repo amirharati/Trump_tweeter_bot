@@ -82,8 +82,8 @@ print("#words:", len(words))
 
 words = sorted(words)
 chars = sorted(chars)
-words = ["<START>", "<EOS>"] + words
-chars = ["<START>", "<EOS>"] + chars
+words = ["<PAD>", "<START>", "<EOS>"] + words
+chars = ["<PAD>", "<START>", "<EOS>"] + chars
 
 words_to_ids = {w: id + 1 for id, w in enumerate(words)}
 ids_to_words = {words_to_ids[x]: x for x in words_to_ids}

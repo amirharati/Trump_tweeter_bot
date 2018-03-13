@@ -22,6 +22,7 @@ def deflate(x):
     x['length'] = tf.squeeze(x['length'])
     return x
 
+
 class DataPreppy():
   def __init__(self, prefix, input_voc_dict, input_data_file, outdir):
     self.vocabs = {}
