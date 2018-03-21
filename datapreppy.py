@@ -97,6 +97,7 @@ class DataPreppy():
     val = all_data[:2000]
     test = all_data[2000:6000]
     train = all_data[6000:]
+    print("trian size:", len(train))
     for (data, path) in [(val, './data/' + self.prefix + '-val.tfrecord'), (test, './data/' + self.prefix + '-test.tfrecord'), (train, './data/' + self.prefix + '-train.tfrecord')]:
       with open(path, 'w') as f:
         writer = tf.python_io.TFRecordWriter(f.name)
@@ -137,7 +138,7 @@ class DataPreppy():
   @staticmethod
   def prepare_dataset_iterators(prefix, batch_size=128):
       # Make a dataset from the train data
-      train_ds = DataPreppy.make_dataset('./data/' + prefix + '-train.tfrecord',batch_size=batch_size)
+      train_ds = DataPreppy.make_dataset('./data/' + prefix + '-train.tfrecord', batch_size=batch_size)
       # make a dataset from the valdiation data
       val_ds = DataPreppy.make_dataset('./data/' + prefix + '-val.tfrecord',batch_size=batch_size)
       test_ds = DataPreppy.make_dataset('./data/' + prefix + '-test.tfrecord',batch_size=batch_size)

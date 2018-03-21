@@ -85,9 +85,9 @@ chars = sorted(chars)
 words = ["<PAD>", "<START>", "<EOS>"] + words
 chars = ["<PAD>", "<START>", "<EOS>"] + chars
 
-words_to_ids = {w: id + 1 for id, w in enumerate(words)}
+words_to_ids = {w: id for id, w in enumerate(words)}
 ids_to_words = {words_to_ids[x]: x for x in words_to_ids}
-chars_to_ids = {w: id + 1 for id, w in enumerate(chars)}
+chars_to_ids = {w: id for id, w in enumerate(chars)}
 ids_to_chars = {chars_to_ids[x]: x for x in chars_to_ids}
 
 
