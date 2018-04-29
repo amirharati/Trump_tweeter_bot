@@ -6,10 +6,10 @@ import word_lm_model as wlm
 import datapreppy as dp
 import tensorflow as tf
 
-model_size = 256
-num_layers = 1
-batch_size = 64
-embedding_size = 10
+model_size = 32 #512
+num_layers = 1 #2
+batch_size = 32
+embedding_size = 20
 checkpoints_dir = "./chkpoints"
 
 
@@ -42,7 +42,7 @@ def main():
           try:
             [res_loss, _, res_global_step, summary] = \
                 sess.run([M.loss, M.train_op, M.global_step, summary_op],
-                         feed_dict={M.keep_prob: 1.0})
+                         feed_dict={M.keep_prob: .9})
 
             if res_global_step % 100 == 0:
               print("loss: ", res_loss)
