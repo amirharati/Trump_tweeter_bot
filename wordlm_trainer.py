@@ -15,7 +15,7 @@ checkpoints_dir = "./chkpoints"
 
 def main():
   with tf.Graph().as_default():
-    dpp = dp.DataPreppy("char", "./data/word2id.txt", "", "")
+    dpp = dp.DataPreppy("word", "./data/annakarenina_word2id.txt", "", "")
     next_element, training_init_op, _, _ = \
       dpp.prepare_dataset_iterators("word", batch_size=batch_size)
 
