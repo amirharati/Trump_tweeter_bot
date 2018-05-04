@@ -94,9 +94,9 @@ class DataPreppy():
     # suffle
     shuffle(all_data)
 
-    val = all_data[:2000]
-    test = all_data[2000:6000]
-    train = all_data[6000:]
+    val = all_data[:1000]
+    test = all_data[1000:2000]
+    train = all_data[2000:]
     print("trian size:", len(train))
     for (data, path) in [(val, './data/' + self.prefix + '-val.tfrecord'), (test, './data/' + self.prefix + '-test.tfrecord'), (train, './data/' + self.prefix + '-train.tfrecord')]:
       with open(path, 'w') as f:
