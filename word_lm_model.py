@@ -37,7 +37,8 @@ class WordLmModel():
       loss, preds = self._loss(outputs)
 
       self.preds = preds
-      self.loss = tf.reduce_sum(loss)
+      #self.loss = tf.reduce_sum(loss)
+      self.loss = tf.reduce_mean(loss)
       tf.summary.scalar("loss", self.loss)
       with tf.variable_scope("train_op"):
         self.global_step = tf.get_variable('global_step', [], initializer=tf.constant_initializer(0.0))
@@ -45,7 +46,7 @@ class WordLmModel():
         self.initial_learning_rate = tf.constant(0.001)
         learning_rate = tf.train.exponential_decay(self.initial_learning_rate,
                                                        self.global_step,
-                                                        200, 0.9)
+                                                        100, 0.99)
         tf.summary.scalar("learning_rate", learning_rate)
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, tvars), 5)

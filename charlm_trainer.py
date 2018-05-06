@@ -10,17 +10,18 @@ model_size = 512
 num_layers = 1
 batch_size = 64
 checkpoints_dir = "./chkpoints"
+embedding_size = 100
 
 
 def main():
   with tf.Graph().as_default():
-    dpp = dp.DataPreppy("char", "./data/chars2id.txt", "", "")
+    dpp = dp.DataPreppy("annakarenina_echar", "./data/annakarenina_echars2id.txt", "", "")
     next_element, training_init_op, _, _ = \
-      dpp.prepare_dataset_iterators("char", batch_size=batch_size)
+      dpp.prepare_dataset_iterators("annakarenina_echar", batch_size=batch_size)
 
     train_writer = tf.summary.FileWriter("./logs/train")
 
-    M = clm.CharLmModel(next_element, dpp.vocabs, dpp.reverse_vocabs, num_layers, model_size)
+    M = clm.CharLmModel(next_element, dpp.vocabs, dpp.reverse_vocabs, num_layers, model_size, embedding_size)
     summary_op = tf.summary.merge_all()
     with tf.Session() as sess:
       init_op = tf.global_variables_initializer()

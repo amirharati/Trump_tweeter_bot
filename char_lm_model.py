@@ -8,7 +8,7 @@ import numpy as np
 
 class CharLmModel():
   def __init__(self, inputs, vocabs, reverse_vocabs,
-               num_layers, model_size):
+               num_layers, model_size, embedding_size):
     self.sequence = inputs['seq']
     self.lengths = inputs['length']
     self.model_size = model_size
@@ -17,10 +17,14 @@ class CharLmModel():
     self.vocabs = vocabs
     self.reverse_vocabs = reverse_vocabs
     self.vocab_size = len(vocabs)
+    self.embedding_size = embedding_size
 
     with tf.variable_scope("main", initializer=tf.contrib.layers.xavier_initializer()):
       # embadding for chars
-      self.embedding = tf.constant(np.eye(self.vocab_size), dtype=tf.float32)
+      #self.embedding = tf.constant(np.eye(self.vocab_size), dtype=tf.float32)
+      self.embedding = tf.get_variable("embedding",
+         [self.vocab_size, self.embedding_size], dtype=tf.float32)
+
       embed_seq = tf.nn.embedding_lookup(self.embedding, self.sequence)
       cells = []
       for i in range(self.num_layers):
@@ -36,7 +40,8 @@ class CharLmModel():
       loss, preds = self._loss(outputs)
 
       self.preds = preds
-      self.loss = tf.reduce_sum(loss)
+      #self.loss = tf.reduce_sum(loss)
+      self.loss = tf.reduce_mean(loss)
       tf.summary.scalar("loss", self.loss)
       with tf.variable_scope("train_op"):
         self.global_step = tf.get_variable('global_step', [], initializer=tf.constant_initializer(0.0))
@@ -44,7 +49,7 @@ class CharLmModel():
         self.initial_learning_rate = tf.constant(0.001)
         learning_rate = tf.train.exponential_decay(self.initial_learning_rate,
                                                        self.global_step,
-                                                        200, 0.9)
+                                                        100, 0.999)
         tf.summary.scalar("learning_rate", learning_rate)
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(self.loss, tvars), 5)
@@ -67,14 +72,14 @@ class CharLmModel():
       mask = tf.sign(tf.abs(tf.cast(targets, dtype=tf.float32)))
       #mask = tf.sequence_mask(self.lengths - 1, tf.reduce_max(self.lengths) - 1)
       preds = tf.argmax(tf.nn.softmax(logits), axis=2)
-      loss = tf.contrib.seq2seq.sequence_loss(logits, targets,
-                                              mask,
-                                              average_across_timesteps=False,
-                                              average_across_batch=True)
+      #loss = tf.contrib.seq2seq.sequence_loss(logits, targets,
+      #                                        mask,
+      #                                        average_across_timesteps=False,
+      #                                        average_across_batch=True)
     # alternative loss
-    #loss = tf.losses.sparse_softmax_cross_entropy(targets,
-    #                                              logits,
-    #                                               weights=mask)
+    loss = tf.losses.sparse_softmax_cross_entropy(targets,
+                                                  logits,
+                                                   weights=mask)
     return loss, preds
 
   def _sample_ops(self):
@@ -132,8 +137,8 @@ class CharLmModel():
         feed = dict()
         feed[self.keep_prob] = 1.0
         for i in range(0, self.num_layers):
-            for c in range(0, len(s[i])):
-                feed[self.current_states[i]] = s[i]
+            #for c in range(0, len(s[i])):
+            feed[self.current_states[i]] = s[i]
         tmp = np.array([ind_sample])
         tmp = np.reshape(tmp, [1, 1])
         feed[self.input] = tmp  # Add new input symbol to feed
