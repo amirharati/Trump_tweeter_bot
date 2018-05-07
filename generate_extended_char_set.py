@@ -11,12 +11,12 @@ from itertools import dropwhile
 
 
 def main():
-    inp_text = "data/annakarenina_text_data.txt"
-    out_count = "data/annakarenina_count.txt"
-    extended_set = "data/annakarenina_echars2id.txt"
-    echar_data = "data/annakarenina_echarid_data.txt"
+    inp_text = "data/text_data.txt"
+    out_count = "data/trump_mix_count.txt"
+    extended_set = "data/echars2id.txt"
+    echar_data = "data/echarid_data.txt"
 
-    min_count = 100  # min number of count to add to extended char set
+    min_count = 10  # min number of count to add to extended char set
 
     lines = [line.strip() for line in open(inp_text)]
 
