@@ -119,9 +119,9 @@ class DataPreppy():
     # Read a tf record file. This makes a dataset of raw TFRecords
     dataset = tf.data.TFRecordDataset([path])
     # Apply/map the parse function to every record. Now the dataset is a bunch of dictionaries of Tensors
-    dataset = dataset.map(DataPreppy.parse, num_parallel_calls=5)
+    dataset = dataset.map(DataPreppy.parse, num_parallel_calls=2)
     #Shuffle the dataset
-    dataset = dataset.shuffle(buffer_size=10000)
+    dataset = dataset.shuffle(buffer_size=1000)
     #In order the pad the dataset, I had to use this hack to expand scalars to vectors.
     dataset = dataset.map(expand)
     # Batch the dataset so that we get batch_size examples in each batch.

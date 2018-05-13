@@ -8,16 +8,16 @@ import tensorflow as tf
 
 model_size = 512
 num_layers = 1
-batch_size = 64
+batch_size = 32
 checkpoints_dir = "./chkpoints"
 embedding_size = 100
 
 
 def main():
   with tf.Graph().as_default():
-    dpp = dp.DataPreppy("annakarenina_echar", "./data/annakarenina_echars2id.txt", "", "")
+    dpp = dp.DataPreppy("echar", "./data/echars2id.txt", "", "")
     next_element, training_init_op, _, _ = \
-      dpp.prepare_dataset_iterators("annakarenina_echar", batch_size=batch_size)
+      dpp.prepare_dataset_iterators("echar", batch_size=batch_size)
 
     train_writer = tf.summary.FileWriter("./logs/train")
 
