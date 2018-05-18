@@ -8,12 +8,17 @@ import tensorflow as tf
 
 model_size = 512
 num_layers = 1
-batch_size = 32
+batch_size = 128
 checkpoints_dir = "./chkpoints"
 embedding_size = 100
 
+# CRASH REASON:  SOME LINES ARE tooo  long check line 41336
 
 def main():
+  #config = tf.ConfigProto(
+  #      device_count = {'GPU': 0}
+  #)
+  run_options = tf.RunOptions(report_tensor_allocations_upon_oom=True)
   with tf.Graph().as_default():
     dpp = dp.DataPreppy("echar", "./data/echars2id.txt", "", "")
     next_element, training_init_op, _, _ = \
@@ -42,7 +47,7 @@ def main():
           try:
             [res_loss, _, res_global_step, summary] = \
                 sess.run([M.loss, M.train_op, M.global_step, summary_op],
-                         feed_dict={M.keep_prob: 1.0})
+                         feed_dict={M.keep_prob: 1.0}, options=run_options)
 
             if res_global_step % 100 == 0:
               print("loss: ", res_loss)

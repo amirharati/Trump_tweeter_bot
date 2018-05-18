@@ -52,8 +52,7 @@ for k in json_data:
     temp = temp.replace("  ", "")
     temp = temp.replace('?', ' ? ')
     temp = temp.replace('!', ' ! ')
-
-    data.append(temp)
+    data.append(temp[1:])
 
 
 words = set()
@@ -103,11 +102,12 @@ for line in speeches:
   temp = temp.replace("  ", "")
   temp = temp.replace('?', ' ? ')
   temp = temp.replace('!', ' ! ')
-
   sdata.append(temp)
 
 # add speeches to  tweets
-data = data + sdata
+#data = data + sdata
+#data = sdata
+
 
 line = ""
 pdata = []
@@ -123,6 +123,14 @@ for l in data:
   pdata.append(l)
   #line = ""
 
+for l in sdata:
+  for w in l.split():
+    words.add(w)
+    for c in w:
+      chars.add(c)
+    #line += w + " "
+  #else:
+  pdata.append(l)
 
 chars = list(chars)
 words = list(words)
