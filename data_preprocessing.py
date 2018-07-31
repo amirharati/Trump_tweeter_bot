@@ -10,6 +10,7 @@ import textacy as tc
 import glob, os
 import spacy as sp
 import unicodedata
+import re
 
 outdir = "./data"
 #nlp = sp.load('en_core_web_lg')
@@ -24,6 +25,8 @@ for file in glob.glob("master*.json"):
 
 os.chdir("..")
 
+
+
 # read and normalize the tweets
 data = list()
 for k in json_data:
@@ -36,7 +39,10 @@ for k in json_data:
     temp = str(unicodedata.normalize('NFKD', temp).encode('ascii', 'ignore'))
     temp = temp.strip("\r\n")
     temp = temp.replace("\n", " ")
+    temp = temp.replace("\\n", " ")
+    temp = temp.replace("\\t", " ")
     temp = temp.replace("\t", " ")
+    temp = re.sub(r'RT\s+.*\:\s+', r'', temp)
     temp = tc.preprocess.normalize_whitespace(tc.preprocess.preprocess_text(temp, transliterate=True, no_urls=True, no_emails=True))
     temp = temp.replace("*EMAIL*", "")
     temp = temp.replace("*URL*", "")
@@ -46,12 +52,14 @@ for k in json_data:
     temp = temp.replace("\'", "")
     temp = temp.replace("&gt", "")
     temp = temp.replace("-", "")
-    #temp = temp.replace(".", "")
-    temp = temp.replace("    ", " ")
-    temp = temp.replace("   ", " ")
-    temp = temp.replace("  ", "")
+    temp = temp.replace(".", " ")
+    #temp = temp.replace("    ", " ")
+    #temp = temp.replace("   ", " ")
+    #temp = temp.replace("  ", "")
+    temp = ' '.join(temp.split())
     temp = temp.replace('?', ' ? ')
     temp = temp.replace('!', ' ! ')
+    
     data.append(temp[1:])
 
 
@@ -79,7 +87,7 @@ chars = set()
 
 #data = [item for sublist in data for item in sublist]
 
-#print(data[0:1000])
+#print(data[0:10])
 
 speeches = [line.strip() for line in open("data/trump_speeches.txt")]
 sdata = []
@@ -87,6 +95,8 @@ for line in speeches:
   temp = line.strip("\r\n")
   temp = temp.replace("\n", " ")
   temp = temp.replace("\t", " ")
+  temp = temp.replace("\\n", " ")
+  temp = temp.replace("\\t", " ")
   temp = tc.preprocess.normalize_whitespace(tc.preprocess.preprocess_text(temp, transliterate=True, no_urls=True, no_emails=True))
   temp = temp.replace("*EMAIL*", "")
   temp = temp.replace("*URL*", "")
@@ -96,10 +106,11 @@ for line in speeches:
   temp = temp.replace("\'", "")
   temp = temp.replace("&gt", "")
   temp = temp.replace("-", "")
-  #temp = temp.replace(".", "")
-  temp = temp.replace("    ", " ")
-  temp = temp.replace("   ", " ")
-  temp = temp.replace("  ", "")
+  temp = temp.replace(".", " ")
+  #temp = temp.replace("    ", " ")
+  #temp = temp.replace("   ", " ")
+  #temp = temp.replace("  ", "")
+  temp = ' '.join(temp.split())
   temp = temp.replace('?', ' ? ')
   temp = temp.replace('!', ' ! ')
   sdata.append(temp)
@@ -120,6 +131,7 @@ for l in data:
       chars.add(c)
     #line += w + " "
   #else:
+  #print(l)
   pdata.append(l)
   #line = ""
 
@@ -160,6 +172,7 @@ with open(outdir + "/chars2id.txt", "w") as wif:
 
 with open(outdir + "/text_data.txt", "w") as f:
   for tweet in pdata:
+    #print(tweet)
     f.write(tweet + "\n")
 
 with open(outdir + "/charid_data.txt", "w") as f:
