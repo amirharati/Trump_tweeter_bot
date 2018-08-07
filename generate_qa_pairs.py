@@ -10,6 +10,7 @@
     ** we aso need to have several combination of <UNK>/hot words as input.
     ** For decoder we used extended echar that includes all words from encoder and part of words and chars.
     ** This hopefully allows to generate meaningful responses.
+    TO AMIR check this: https://blog.kovalevskyi.com/how-to-create-a-chatbot-with-tf-seq2seq-for-free-e876ea99063c
 """
 
 from nltk.corpus import stopwords
