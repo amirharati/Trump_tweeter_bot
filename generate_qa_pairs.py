@@ -10,6 +10,8 @@
     ** we aso need to have several combination of <UNK>/hot words as input.
     ** For decoder we used extended echar that includes all words from encoder and part of words and chars.
     ** This hopefully allows to generate meaningful responses.
+
+    TODO:  make every question to lower.
   
 """
 
@@ -83,13 +85,21 @@ class PairGen:
                 pairs.append((onehot_2, data))
             
             # also append with whole sentence after removing all stopwords and replacing non-freq words with <UNK>
-            pairs.append((filtered_unk, data))
+            pairs.append((" ".join(filtered_unk), data))
 
         
         # now loop over freq terms and add if term for n>1 is in the data
         # TODO: fix the error
         
+        re_pat = {}
+        for term in self.freq_terms:
+            if (len(term.split())>1):
+                #print(term)
+                p = re.compile(".*" + term.lower() + ".*")
+                re_pat[term] = p
+
         for data  in self.input_data:
+            print(data)
             count = 0
             for term in self.freq_terms:
                 
@@ -99,8 +109,8 @@ class PairGen:
         
 
                 if (len(term.split())>1):
-                    print(term)
-                    p = re.compile(".*" + term.lower() + ".*")
+                    #print(term)
+                    p = re_pat[term]
                     if p.match(data.lower()) is not None:
                         fterm = []
                         ucount = 0
@@ -114,6 +124,7 @@ class PairGen:
                             count += 1
                             fterm_str = " ".join(fterm)
                             pairs.append((fterm_str, data))
+        
                 
 
         return pairs    
