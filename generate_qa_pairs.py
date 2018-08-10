@@ -5,7 +5,8 @@
     The idea is to have these pairs:
     1- identical: the same as tweet/utterance.
     2- One Hot word: Selected after removing stop words randomly from an input list of words.
-    3- Two and Three hot words. (later)
+    3- Two hot words.
+    4- Freq. n-grams 
     ** Notice for encoder we only use words with several examples. Everything else will be mapped to  <UNK>.
     ** we aso need to have several combination of <UNK>/hot words as input.
     ** For decoder we used extended echar that includes all words from encoder and part of words and chars.
@@ -43,12 +44,12 @@ class PairGen:
         # filter stop words
         nonstops = [w for w in inp_words if not w.lower() in self.stop_words]
         # filter not in list
-        filtered_freq_words = [w for w in nonstops if w in self.freq_terms]
+        filtered_freq_words = [w.lower() for w in nonstops if w in self.freq_terms]
         # replaced with <UNK> if not in freq list
         filtered_freq_words_with_unk = []
         for w in nonstops:
             if w in self.freq_terms:
-                filtered_freq_words_with_unk.append(w)
+                filtered_freq_words_with_unk.append(w.lower())
             else:
                 filtered_freq_words_with_unk.append("<UNK>")
 
@@ -89,7 +90,6 @@ class PairGen:
 
         
         # now loop over freq terms and add if term for n>1 is in the data
-        # TODO: fix the error
         
         re_pat = {}
         for term in self.freq_terms:
@@ -106,7 +106,6 @@ class PairGen:
                 # we cant have too many examples
                 if count > 10:
                     break
-        
 
                 if (len(term.split())>1):
                     #print(term)
