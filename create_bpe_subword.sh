@@ -6,10 +6,18 @@
 # uncomment if not cloned.
 #git clone https://github.com/rsennrich/subword-nmt.git
 
-subword-nmt/learn_joint_bpe_and_vocab.py --input data/text_data.txt  -s 50000 -o tmp_code.bpe --write-vocabulary temp.a
+subword-nmt/learn_joint_bpe_and_vocab.py --input data/questions.txt data/answers.txt -s 50000 -o data/trump_code.bpe --write-vocabulary data/vocab_questions.bpe data/vocab_answers.bpe
 # remove tab  (what about some other chars)
-sed -i '/\t/d' ./temp.a
-cat temp.a | cut -f1 --delimiter=' ' > revocab.temp.a
-subword-nmt/apply_bpe.py -c tmp_code.bpe --vocabulary temp.a --vocabulary-threshold 10 < data/text_data.txt >  text_temp
+sed -i '/\t/d' data/vocab_questions.bpe 
+sed -i '/\t/d' data/vocab_answers.bpe 
+cat data/vocab_questions.bpe | cut -f1 --delimiter=' ' > data/revocab_questions.bpe
+cat data/vocab_answers.bpe | cut -f1 --delimiter=' ' > data/revocab_answers.bpe
 
-subword-nmt/get_vocab.py  <text_temp > temp2.a
+subword-nmt/apply_bpe.py -c data/trump_code.bpe --vocabulary data/vocab_questions.bpe --vocabulary-threshold 10 < data/questions.txt  >  data/questions.bpe
+subword-nmt/apply_bpe.py -c data/trump_code.bpe --vocabulary data/vocab_answers.bpe --vocabulary-threshold 10 < data/answers.txt  >  data/answers.bpe
+
+
+subword-nmt/get_vocab.py  <data/questions.bpe > data/vocab_selected_questions.bpe
+subword-nmt/get_vocab.py  <data/answers.bpe > data/vocab_selected_answers.bpe
+
+###  prettrained:  https://github.com/bheinzerling/bpemb
