@@ -17,7 +17,8 @@ def expand(x):
     :param x:
     :return:
     '''
-    x['length'] = tf.expand_dims(tf.convert_to_tensor(x['length']), 0)
+    x['question_length'] = tf.expand_dims(tf.convert_to_tensor(x['question_length']), 0)
+    x['answer_length'] = tf.expand_dims(tf.convert_to_tensor(x['answer_length']), 0)
     return x
 
 
@@ -25,7 +26,9 @@ def deflate(x):
     '''
         Undo Hack. We undo the expansion we did in expand
     '''
-    x['length'] = tf.squeeze(x['length'])
+    x['question_length'] = tf.squeeze(x['question_length'])
+    x['answer_length'] = tf.squeeze(x['answer_length'])
+    
     return x
 
 
@@ -173,15 +176,23 @@ class Seq2SeqDataPreppy():
     # Apply/map the parse function to every record. Now the dataset is a bunch of dictionaries of Tensors
     dataset = dataset.map(Seq2SeqDataPreppy.parse, num_parallel_calls=8)
     #Shuffle the dataset
-    dataset = dataset.shuffle(buffer_size=1000)
+    dataset = dataset.shuffle(buffer_size=10000)
     #In order the pad the dataset, I had to use this hack to expand scalars to vectors.
     dataset = dataset.map(expand)
     # Batch the dataset so that we get batch_size examples in each batch.
     # Remember each item in the dataset is a dict of tensors, we need to specify padding for each tensor seperatly
     dataset = dataset.padded_batch(batch_size, padded_shapes={
-        "length": 1,
-        "seq": tf.TensorShape([None])
+        "question_length": 1,
+        "question_seq": tf.TensorShape([None]),
+        "answer_length": 1,
+        "answer_seq": tf.TensorShape([None])
     # but the seqeunce is variable length, we pass that information to TF
+    },
+    padding_values={
+        "question_length": 0,
+        "question_seq": self.vocabs["<PAD>"],
+        "answer_length": 0,
+        "answer_seq": self.vocabs["<PAD>"]
     })
     #Finnaly, we need to undo that hack from the expand function
     dataset = dataset.map(deflate)
