@@ -9,6 +9,7 @@
 '''
 import tensorflow as tf
 from random import shuffle
+import numpy as np
 
 
 def expand(x):
@@ -163,7 +164,7 @@ class Seq2SeqDataPreppy():
     
 
   @staticmethod
-  def make_dataset(path, batch_size=128):
+  def make_dataset(path, mode, pad_sym, batch_size=128):
     '''
       Makes  a Tensorflow dataset that is shuffled, batched and parsed according to BibPreppy.
       You can chain all the lines here, I split them into seperate calls so I could comment easily
@@ -176,7 +177,8 @@ class Seq2SeqDataPreppy():
     # Apply/map the parse function to every record. Now the dataset is a bunch of dictionaries of Tensors
     dataset = dataset.map(Seq2SeqDataPreppy.parse, num_parallel_calls=8)
     #Shuffle the dataset
-    dataset = dataset.shuffle(buffer_size=10000)
+    if mode == "trian":
+        dataset = dataset.shuffle(buffer_size=10000)
     #In order the pad the dataset, I had to use this hack to expand scalars to vectors.
     dataset = dataset.map(expand)
     # Batch the dataset so that we get batch_size examples in each batch.
@@ -189,14 +191,28 @@ class Seq2SeqDataPreppy():
     # but the seqeunce is variable length, we pass that information to TF
     },
     padding_values={
-        "question_length": 0,
-        "question_seq": self.vocabs["<PAD>"],
-        "answer_length": 0,
-        "answer_seq": self.vocabs["<PAD>"]
+        "question_length": np.int64(0),
+        "question_seq":  np.int64(pad_sym),
+        "answer_length":  np.int64(0),
+        "answer_seq":  np.int64(pad_sym)
     })
+
+    if mode == "train":  
+      # unlimited repeats
+      dataset = dataset.repeat()
+
     #Finnaly, we need to undo that hack from the expand function
     dataset = dataset.map(deflate)
-    return dataset
+    #return dataset
+    """
+      here we can return the dataset; however in https://www.tensorflow.org/programmers_guide/datasets
+      it is recommended to return iterator.
+      ###return dataset
+    """  
+    iterator = dataset.make_one_shot_iterator()
+    features = iterator.get_next()
+    return features 
+
 
   """  
   @staticmethod
