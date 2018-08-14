@@ -2,6 +2,7 @@
 # Amir Harati, Aug 2018
 """
     Trump Chatbot model using seq2seq model.
+
 """
 
 import Seq2SeqDataPreppy as SDP
@@ -38,8 +39,8 @@ class ChatBot:
             train the custom estimator.
         """
         print_logs = tf.train.LoggingTensorHook(
-        ['train_pred', "predictions"], every_n_iter=100,
-             formatter=self.get_formatter(['train_pred', 'predictions'], self.vocabs))
+        ['train_input', 'train_pred',  "predictions"], every_n_iter=100,
+             formatter=self.get_formatter(['train_input', 'train_pred', 'predictions'], self.vocabs))
         est = tf.estimator.Estimator(
             model_fn=self._model,
             model_dir=self.model_dir,
@@ -220,7 +221,7 @@ class ChatBot:
             tf.summary.histogram("gradients_" + str(g), g)
         train_op = optimizer.apply_gradients(zip(grads, tvars),
             global_step=tf.train.get_global_step())
-        
+        tf.identity(question_sequence[0], name="train_input")
         tf.identity(train_outputs.sample_id[0], name='train_pred')
         tf.identity(pred_outputs.sample_id[0], name='predictions')
         return tf.estimator.EstimatorSpec(

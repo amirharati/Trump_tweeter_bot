@@ -177,7 +177,7 @@ class Seq2SeqDataPreppy():
     # Apply/map the parse function to every record. Now the dataset is a bunch of dictionaries of Tensors
     dataset = dataset.map(Seq2SeqDataPreppy.parse, num_parallel_calls=8)
     #Shuffle the dataset
-    if mode == "trian":
+    if mode == "train":
         dataset = dataset.shuffle(buffer_size=10000)
     #In order the pad the dataset, I had to use this hack to expand scalars to vectors.
     dataset = dataset.map(expand)
