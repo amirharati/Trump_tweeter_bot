@@ -20,7 +20,7 @@ from tensorflow.contrib import layers
 
 
 
-class ChatBot:
+class TwitterBot:
     def __init__(self, model_size, embedding_size, num_layers,
          keep_prob, vocabs, reverse_vocabs, en_bpe_dict, batch_size, num_itr, train_tfrecords, eval_tfrecords,
          model_dir):
@@ -268,7 +268,7 @@ class ChatBot:
 def test():
     tf.logging.set_verbosity(logging.DEBUG)
     dpp = SDP.Seq2SeqDataPreppy("qa_word", "./data/qa_word2id.txt", "./data/qa_wordid_questions.txt", "./data/qa_wordid_answers.txt", "./data")
-    m = ChatBot(model_size=512, embedding_size=100, num_layers=2,
+    m = TwitterBot(model_size=512, embedding_size=100, num_layers=2,
          keep_prob=1.0, batch_size=32, num_itr=500, vocabs=dpp.vocabs, reverse_vocabs=dpp.reverse_vocabs,
          en_bpe_dict="./data/questions_en_bpe.dict", 
          train_tfrecords='./data/qa_word-train.tfrecord',
@@ -276,8 +276,8 @@ def test():
          model_dir="./checkpoints")
     print(dpp.vocabs)
     print(len(dpp.vocabs))
-    m.train()
-    m.generate("iran deal")
+    #m.train()
+    m.generate("thanks")
 
 if __name__ == "__main__":
     test()
