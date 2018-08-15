@@ -3,6 +3,9 @@
 """
     Trump Chatbot model using seq2seq model.
 
+    TODO:
+    1- add utilities for pbt <-> text, generator, and print.
+    2- add randomizer for both train and inference so it generates diff. things with same input.(e.g. add random noise)
 """
 
 import Seq2SeqDataPreppy as SDP
