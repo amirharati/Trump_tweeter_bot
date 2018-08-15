@@ -6,6 +6,8 @@
     TODO:
     1- add utilities for pbt <-> text, generator, and print.
     2- add randomizer for both train and inference so it generates diff. things with same input.(e.g. add random noise)
+    3- remvoe <START>/<EOS> for input string.
+    4- make sure it actually works correctly (response seems a little bit random)
 """
 
 import Seq2SeqDataPreppy as SDP
@@ -19,7 +21,7 @@ from tensorflow.contrib import layers
 
 class ChatBot:
     def __init__(self, model_size, embedding_size, num_layers,
-         keep_prob, vocabs, reverse_vocabs, batch_size, num_itr, train_tfrecords, eval_tfrecords,
+         keep_prob, vocabs, reverse_vocabs, en_bpe_dict, batch_size, num_itr, train_tfrecords, eval_tfrecords,
          model_dir):
         self.params = dict()
         self.params["model_size"] = model_size
@@ -36,6 +38,15 @@ class ChatBot:
         self.model_dir = model_dir
         self.vocabs = vocabs
         self.reverse_vocabs = reverse_vocabs
+
+        self.en_bpe_dict = {}
+        lines = [line.strip() for line in open(en_bpe_dict)]
+        for line in lines:
+            parts = line.split()
+            self.en_bpe_dict[parts[0]] = parts[1].split()
+
+    def bpe_to_en(self, inp):
+        return inp.replace("@@ ", "")
 
     def train(self):
         """
@@ -63,8 +74,10 @@ class ChatBot:
             return '\n'.join(res)
         return format
     
-    def generate(self, question_wordids):
+    def generate(self, question_str):
      
+        question_str = question_str.lower()
+
         model_size = self.params["model_size"]
         
         num_layers = self.params["num_layers"]
@@ -74,6 +87,18 @@ class ChatBot:
             params=self.params,
             warm_start_from=self.model_dir)
         
+        question_wordids = [self.vocabs["<START>"]]
+        word_seq = question_str.split()
+        for w in word_seq:
+            if w in self.en_bpe_dict:
+                bpet = self.en_bpe_dict[w]
+            else:
+                bpet = ["<UNK>"]
+            for b in bpet:
+                question_wordids.append(self.vocabs[b])
+        question_wordids.append(self.vocabs["<EOS>"])
+
+    
         current_seq_ind = []
         # dummy seq.
         X = np.zeros((1, len(question_wordids)), dtype=np.int32)
@@ -107,6 +132,9 @@ class ChatBot:
             out_str += self.reverse_vocabs[c] + " " 
         for c in syms:
             out_str2 += self.reverse_vocabs[c] + " "
+        out_str = self.bpe_to_en(out_str)
+        out_str2 = self.bpe_to_en(out_str2)
+
         print("argmax: ", out_str2)
         print("sampling: ", out_str)
     
@@ -241,13 +269,14 @@ def test():
     dpp = SDP.Seq2SeqDataPreppy("qa_word", "./data/qa_word2id.txt", "./data/qa_wordid_questions.txt", "./data/qa_wordid_answers.txt", "./data")
     m = ChatBot(model_size=512, embedding_size=100, num_layers=2,
          keep_prob=1.0, batch_size=32, num_itr=500, vocabs=dpp.vocabs, reverse_vocabs=dpp.reverse_vocabs,
+         en_bpe_dict="./data/questions_en_bpe.dict", 
          train_tfrecords='./data/qa_word-train.tfrecord',
          eval_tfrecords='./data/qa_word-val.tfrecord',
          model_dir="./checkpoints")
     print(dpp.vocabs)
     print(len(dpp.vocabs))
     #m.train()
-    m.generate([1, 919, 420, 2])
+    m.generate("sexual assaults")
 
 if __name__ == "__main__":
     test()
