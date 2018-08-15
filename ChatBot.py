@@ -59,8 +59,8 @@ class ChatBot:
                 res.append("%s = %s" % (key, to_str(values[key]) ))
             return '\n'.join(res)
         return format
-    """
-    def generate(self):
+    
+    def generate(self, question_wordids):
      
         model_size = self.params["model_size"]
         
@@ -73,10 +73,12 @@ class ChatBot:
         
         current_seq_ind = []
         # dummy seq.
-        X = np.zeros((1, 1), dtype=np.int32)
-        X[0, 0] = 1
+        X = np.zeros((1, len(question_wordids)), dtype=np.int32)
+        X[0, :] = 1
+        Y = np.zeros((1, len(question_wordids)), dtype=np.int32)
+        Y[0, :] = question_wordids
         predict_input_fn = tf.estimator.inputs.numpy_input_fn(
-            x={"seq": X},
+            x={"answer_seq": X, "question_seq": Y},
             num_epochs=1,
             shuffle=False)
             
@@ -104,7 +106,7 @@ class ChatBot:
             out_str2 += self.reverse_vocabs[c] + " "
         print("argmax: ", out_str2)
         print("sampling: ", out_str)
-    """
+    
 
     def _train_input_fn(self):
         return SDP.Seq2SeqDataPreppy.make_dataset(self.train_tfrecords, "train", self.vocabs["<PAD>"], self.batch_size)
@@ -241,8 +243,8 @@ def test():
          model_dir="./checkpoints")
     print(dpp.vocabs)
     print(len(dpp.vocabs))
-    m.train()
-    #m.generate()
+    #m.train()
+    m.generate([1, 919, 420, 2])
 
 if __name__ == "__main__":
     test()
