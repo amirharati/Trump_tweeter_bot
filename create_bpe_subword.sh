@@ -24,6 +24,7 @@ cat data/questions.bpe data/answers.bpe > data/questions_answers.bpe
 
 subword-nmt/get_vocab.py  <data/questions_answers.bpe > data/vocab_selected_questions_answers.bpe
 
+
 #subword-nmt/get_vocab.py  <data/answers.bpe > data/vocab_selected_answers.bpe
 
 
