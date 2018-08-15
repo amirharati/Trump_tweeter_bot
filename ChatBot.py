@@ -8,6 +8,7 @@
     2- add randomizer for both train and inference so it generates diff. things with same input.(e.g. add random noise)
     3- remvoe <START>/<EOS> for input string.
     4- make sure it actually works correctly (response seems a little bit random)
+    5- use attention.
 """
 
 import Seq2SeqDataPreppy as SDP
@@ -65,7 +66,7 @@ class ChatBot:
 
         def to_str(sequence):
             tokens = [self.reverse_vocabs[x] for x in sequence]
-            return ' '.join(tokens)
+            return self.bpe_to_en(' '.join(tokens))
 
         def format(values):
             res = []
@@ -178,7 +179,7 @@ class ChatBot:
             icells.append(c)
         # I cant figure out how to use tuple version.    
         icell = tf.nn.rnn_cell.MultiRNNCell(icells)
-        encoder_outputs, encoder_final_state = tf.nn.dynamic_rnn(icell, question_embed, dtype=tf.float32)
+        encoder_outputs, encoder_final_state = tf.nn.dynamic_rnn(icell, question_embed, sequence_length=question_lengths, dtype=tf.float32)
 
         # helpers
         train_helper = tf.contrib.seq2seq.TrainingHelper(answer_embed, answer_lengths, time_major=False)
@@ -275,8 +276,8 @@ def test():
          model_dir="./checkpoints")
     print(dpp.vocabs)
     print(len(dpp.vocabs))
-    #m.train()
-    m.generate("sexual assaults")
+    m.train()
+    m.generate("iran deal")
 
 if __name__ == "__main__":
     test()
