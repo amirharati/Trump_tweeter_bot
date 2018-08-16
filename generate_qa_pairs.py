@@ -61,6 +61,8 @@ class PairGen:
         """
         # loop over all data points
         pairs = []
+        pairs_short = [] # short version
+
         for data in self.input_data:
             filtered, filtered_unk = self.get_words(data)
             
@@ -87,6 +89,8 @@ class PairGen:
             
             # also append with whole sentence after removing all stopwords and replacing non-freq words with <UNK>
             pairs.append((" ".join(filtered_unk), data))
+
+            pairs_short.append((" ".join(filtered_unk), data))
 
         
         # now loop over freq terms and add if term for n>1 is in the data
@@ -126,7 +130,7 @@ class PairGen:
         
                 
 
-        return pairs    
+        return pairs, pairs_short 
 
 
     
@@ -134,11 +138,21 @@ class PairGen:
         """
             generate the full dataset.
         """
-        pairs = self.generate_pairs()
+        pairs, pairs_short = self.generate_pairs()
         fo1 = open(self.output_file1, "w")
         fo2 = open(self.output_file2, "w")
 
         for p in pairs:
+            p_str = "".join(p[0])
+            fo1.write(p_str + "\n")
+            fo2.write(p[1] + "\n")
+        fo1.close()
+        fo2.close()
+
+        fo1 = open(self.output_file1 + ".short", "w")
+        fo2 = open(self.output_file2 + ".short", "w")
+
+        for p in pairs_short:
             p_str = "".join(p[0])
             fo1.write(p_str + "\n")
             fo2.write(p[1] + "\n")

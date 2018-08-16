@@ -179,6 +179,7 @@ class TwitterBot:
             icells.append(c)
         # I cant figure out how to use tuple version.    
         icell = tf.nn.rnn_cell.MultiRNNCell(icells)
+        #icell = tf.contrib.rnn.GRUCell(num_units=model_size)
         encoder_outputs, encoder_final_state = tf.nn.dynamic_rnn(icell, question_embed, sequence_length=question_lengths, dtype=tf.float32)
 
         # helpers
@@ -188,7 +189,7 @@ class TwitterBot:
                     start_tokens=start_tokens, end_token=self.vocabs["<EOS>"])
 
         # rnn cell and dense layer
-        #cell = tf.contrib.rnn.GRUCell(num_units=model_size)
+        cell = tf.contrib.rnn.GRUCell(num_units=model_size)
         cells = []
         for i in range(num_layers):
             c = tf.nn.rnn_cell.GRUCell(model_size)
@@ -197,18 +198,27 @@ class TwitterBot:
             cells.append(c)
         # I cant figure out how to use tuple version.    
         cell = tf.nn.rnn_cell.MultiRNNCell(cells)
-        projection_layer = Dense(units=vocab_size,
-         kernel_initializer = tf.truncated_normal_initializer(mean = 0.0, stddev=0.1))
+        #projection_layer = Dense(units=vocab_size,
+        # kernel_initializer = tf.truncated_normal_initializer(mean = 0.0, stddev=0.1))
 
         # deocder in seq2seq model. For this case we don't have an encoder.
         def decode(helper, scope, output_max_length,reuse=None):
             with tf.variable_scope(scope, reuse=reuse):
+                attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
+                    num_units=model_size, memory=encoder_outputs,
+                    memory_sequence_length=question_lengths)
+                #cell = tf.contrib.rnn.GRUCell(num_units=model_size)
+                attn_cell = tf.contrib.seq2seq.AttentionWrapper(
+                    cell, attention_mechanism, attention_layer_size=model_size / 2)
+                out_cell = tf.contrib.rnn.OutputProjectionWrapper(
+                    attn_cell, vocab_size, reuse=reuse
+                )
                 decoder = tf.contrib.seq2seq.BasicDecoder(
-                    cell=cell, helper=helper,
-                    #initial_state=cell.zero_state(
-                    #    dtype=tf.float32, batch_size=batch_size),
-                        initial_state=encoder_final_state,
-                        output_layer=projection_layer)
+                    cell=out_cell, helper=helper,
+                    initial_state=out_cell.zero_state(dtype=tf.float32, batch_size=batch_size),
+                    #initial_state=encoder_final_state,
+                    #output_layer=projection_layer
+                    )
                 outputs = tf.contrib.seq2seq.dynamic_decode(
                     decoder=decoder, output_time_major=False,
                     impute_finished=True, maximum_iterations=output_max_length
@@ -267,17 +277,18 @@ class TwitterBot:
 
 def test():
     tf.logging.set_verbosity(logging.DEBUG)
-    dpp = SDP.Seq2SeqDataPreppy("qa_word", "./data/qa_word2id.txt", "./data/qa_wordid_questions.txt", "./data/qa_wordid_answers.txt", "./data")
-    m = TwitterBot(model_size=512, embedding_size=100, num_layers=2,
-         keep_prob=1.0, batch_size=32, num_itr=500, vocabs=dpp.vocabs, reverse_vocabs=dpp.reverse_vocabs,
+    dpp = SDP.Seq2SeqDataPreppy("qa_word_short", "./data/qa_word2id.txt.short", "./data/qa_wordid_questions.txt.short",
+     "./data/qa_wordid_answers.txt.short", "./data")
+    m = TwitterBot(model_size=256, embedding_size=100, num_layers=1,
+         keep_prob=1.0, batch_size=16, num_itr=500, vocabs=dpp.vocabs, reverse_vocabs=dpp.reverse_vocabs,
          en_bpe_dict="./data/questions_en_bpe.dict", 
-         train_tfrecords='./data/qa_word-train.tfrecord',
-         eval_tfrecords='./data/qa_word-val.tfrecord',
+         train_tfrecords='./data/qa_word_short-train.tfrecord',
+         eval_tfrecords='./data/qa_word_short-val.tfrecord',
          model_dir="./checkpoints")
     print(dpp.vocabs)
     print(len(dpp.vocabs))
     #m.train()
-    m.generate("thanks")
+    m.generate("Trump is great")
 
 if __name__ == "__main__":
     test()

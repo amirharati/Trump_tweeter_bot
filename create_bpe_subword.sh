@@ -30,3 +30,20 @@ subword-nmt/get_vocab.py  <data/questions_answers.bpe > data/vocab_selected_ques
 
 # TODO: use pretrained model.
 ###  prettrained:  https://github.com/bheinzerling/bpemb
+
+
+# short version
+cat data/questions.txt.short data/answers.txt.short > data/questions_answers.txt.short
+
+subword-nmt/learn_joint_bpe_and_vocab.py --input data/questions_answers.txt.short -s 50000 -o data/trump_code.bpe.short --write-vocabulary data/vocab_questions_answers.bpe.short
+# remove tab  (what about some other chars)
+sed -i '/\t/d' data/vocab_questions_answers.bpe.short
+
+
+# we select at least 500 since we inflate the data 
+subword-nmt/apply_bpe.py -c data/trump_code.bpe.short --vocabulary data/vocab_questions_answers.bpe.short --vocabulary-threshold 10 < data/questions.txt.short  >  data/questions.bpe.short
+subword-nmt/apply_bpe.py -c data/trump_code.bpe.short --vocabulary data/vocab_questions_answers.bpe.short --vocabulary-threshold 10 < data/answers.txt.short  >  data/answers.bpe.short
+
+cat data/questions.bpe.short data/answers.bpe.short > data/questions_answers.bpe.short
+
+subword-nmt/get_vocab.py  <data/questions_answers.bpe.short > data/vocab_selected_questions_answers.bpe.short
