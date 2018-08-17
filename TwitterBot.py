@@ -5,10 +5,35 @@
 
     TODO:
     1- add utilities for pbt <-> text, generator, and print.
-    2- add randomizer for both train and inference so it generates diff. things with same input.(e.g. add random noise)
+    2- add randomizer for both train and inference so it generates diff. things with same input.(e.g. add random noise): add dropout in prediction does the trick
+    but is there anything better to do?
     3- remvoe <START>/<EOS> for input string.
     4- make sure it actually works correctly (response seems a little bit random)
-    5- use attention.
+    5- use attention.:  Use too much mem. Check see if we can make it work : after more training looks better
+    6- correct the input (add the dot in answers but not to question, comma either remove or make one word, remove single words cases and (), remove @xxxx: cases. )
+    7- reduce the number of <UNK> both for questions (perhaps max one in a question but during training allow different places)
+    8- add train example with  removed <UNK> all together
+    9- use some normal  (but large) ENglish text to pretrain the models for a while. perhaps use dialoug like move subs? This help to improve
+    generalization somewhat and model learn better English and will be able to go beyond trump tweets
+    10- create a script for all steps of data prep.
+    https://www.cs.cornell.edu/~cristian/Cornell_Movie-Dialogs_Corpus.html
+    perhaps we only trian on some specfic charecters? so it become a hybrid trump bot (think of some funny/crazy charecters)
+    11- perhaps we can allow the stop words just remove very rare words from input and make them <UNK>
+    12- make encoder bidirect
+    
+    seq2seq/attention
+    https://towardsdatascience.com/memory-attention-sequences-37456d271992
+    https://tutorials.botsfloor.com/how-to-build-your-first-chatbot-c84495d4622d
+    https://arxiv.org/pdf/1703.03906v2.pdf
+    https://distill.pub/2016/augmented-rnns/
+    https://arxiv.org/pdf/1610.06258.pdf
+
+    serving:
+    https://towardsdatascience.com/serving-tensorflow-models-serverless-6a39614094ff
+    https://aws.amazon.com/blogs/machine-learning/how-to-deploy-deep-learning-models-with-aws-lambda-and-tensorflow/
+    https://medium.com/tooso/serving-tensorflow-predictions-with-python-and-aws-lambda-facb4ab87ddd
+    use cloud ml engine?
+
 """
 
 import Seq2SeqDataPreppy as SDP
@@ -176,6 +201,8 @@ class TwitterBot:
         icells = []
         for i in range(num_layers):
             c = tf.nn.rnn_cell.GRUCell(model_size)
+            c = tf.nn.rnn_cell.DropoutWrapper(c, input_keep_prob=keep_prob,
+                                            output_keep_prob=keep_prob)
             icells.append(c)
         # I cant figure out how to use tuple version.    
         icell = tf.nn.rnn_cell.MultiRNNCell(icells)
@@ -198,8 +225,8 @@ class TwitterBot:
             cells.append(c)
         # I cant figure out how to use tuple version.    
         cell = tf.nn.rnn_cell.MultiRNNCell(cells)
-        #projection_layer = Dense(units=vocab_size,
-        # kernel_initializer = tf.truncated_normal_initializer(mean = 0.0, stddev=0.1))
+        projection_layer = Dense(units=vocab_size,
+         kernel_initializer = tf.truncated_normal_initializer(mean = 0.0, stddev=0.1))
 
         # deocder in seq2seq model. For this case we don't have an encoder.
         def decode(helper, scope, output_max_length,reuse=None):
@@ -209,15 +236,15 @@ class TwitterBot:
                     memory_sequence_length=question_lengths)
                 #cell = tf.contrib.rnn.GRUCell(num_units=model_size)
                 attn_cell = tf.contrib.seq2seq.AttentionWrapper(
-                    cell, attention_mechanism, attention_layer_size=model_size / 2)
-                out_cell = tf.contrib.rnn.OutputProjectionWrapper(
-                    attn_cell, vocab_size, reuse=reuse
-                )
+                    cell, attention_mechanism, attention_layer_size=model_size)
+                #out_cell = tf.contrib.rnn.OutputProjectionWrapper(
+                #    attn_cell, vocab_size, reuse=reuse
+                #)
                 decoder = tf.contrib.seq2seq.BasicDecoder(
-                    cell=out_cell, helper=helper,
-                    initial_state=out_cell.zero_state(dtype=tf.float32, batch_size=batch_size),
+                    cell=attn_cell, helper=helper,
+                    initial_state=attn_cell.zero_state(dtype=tf.float32, batch_size=batch_size),
                     #initial_state=encoder_final_state,
-                    #output_layer=projection_layer
+                    output_layer=projection_layer
                     )
                 outputs = tf.contrib.seq2seq.dynamic_decode(
                     decoder=decoder, output_time_major=False,
@@ -277,18 +304,18 @@ class TwitterBot:
 
 def test():
     tf.logging.set_verbosity(logging.DEBUG)
-    dpp = SDP.Seq2SeqDataPreppy("qa_word_short", "./data/qa_word2id.txt.short", "./data/qa_wordid_questions.txt.short",
-     "./data/qa_wordid_answers.txt.short", "./data")
-    m = TwitterBot(model_size=256, embedding_size=100, num_layers=1,
-         keep_prob=1.0, batch_size=16, num_itr=500, vocabs=dpp.vocabs, reverse_vocabs=dpp.reverse_vocabs,
+    dpp = SDP.Seq2SeqDataPreppy("qa_word", "./data/qa_word2id.txt", "./data/qa_wordid_questions.txt",
+     "./data/qa_wordid_answers.txt", "./data")
+    m = TwitterBot(model_size=256, embedding_size=100, num_layers=2,
+         keep_prob=.98, batch_size=32, num_itr=1000, vocabs=dpp.vocabs, reverse_vocabs=dpp.reverse_vocabs,
          en_bpe_dict="./data/questions_en_bpe.dict", 
-         train_tfrecords='./data/qa_word_short-train.tfrecord',
-         eval_tfrecords='./data/qa_word_short-val.tfrecord',
+         train_tfrecords='./data/qa_word-train.tfrecord',
+         eval_tfrecords='./data/qa_word-val.tfrecord',
          model_dir="./checkpoints")
     print(dpp.vocabs)
     print(len(dpp.vocabs))
     #m.train()
-    m.generate("Trump is great")
+    m.generate("iran deal")
 
 if __name__ == "__main__":
     test()
