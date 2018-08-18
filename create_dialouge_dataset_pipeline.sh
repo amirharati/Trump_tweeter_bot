@@ -11,7 +11,7 @@ questions=data/trump_tweets_questions.txt
 answers=data/trump_tweets_answers.txt
 # outputs
 questions_bpe=data/trump_tweets_questions.bpe
-answers_bpe=data/trump_tweets_questions.bpe
+answers_bpe=data/trump_tweets_answers.bpe
 selected_voc=data/trump_tweets_selected_voc.txt
 words2ids=data/trump_tweets_words2ids.txt
 wordid_questions=data/trump_tweets_wordid_questions.txt

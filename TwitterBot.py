@@ -20,6 +20,9 @@
     perhaps we only trian on some specfic charecters? so it become a hybrid trump bot (think of some funny/crazy charecters)
     11- perhaps we can allow the stop words just remove very rare words from input and make them <UNK>
     12- make encoder bidirect
+
+    BUG:
+    <UNK> disapeard
     
     seq2seq/attention
     https://towardsdatascience.com/memory-attention-sequences-37456d271992
