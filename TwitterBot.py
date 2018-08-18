@@ -304,18 +304,18 @@ class TwitterBot:
 
 def test():
     tf.logging.set_verbosity(logging.DEBUG)
-    dpp = SDP.Seq2SeqDataPreppy("qa_word", "./data/qa_word2id.txt", "./data/qa_wordid_questions.txt",
-     "./data/qa_wordid_answers.txt", "./data")
+    dpp = SDP.Seq2SeqDataPreppy("qa_word", "./data/trump_tweets_words2ids.txt", "./data/trump_tweets_wordid_questions.txt",
+     "./data/trump_tweets_wordid_answers.txt", "./data")
     m = TwitterBot(model_size=256, embedding_size=100, num_layers=2,
-         keep_prob=.98, batch_size=32, num_itr=1000, vocabs=dpp.vocabs, reverse_vocabs=dpp.reverse_vocabs,
+         keep_prob=.98, batch_size=32, num_itr=100, vocabs=dpp.vocabs, reverse_vocabs=dpp.reverse_vocabs,
          en_bpe_dict="./data/questions_en_bpe.dict", 
          train_tfrecords='./data/qa_word-train.tfrecord',
          eval_tfrecords='./data/qa_word-val.tfrecord',
          model_dir="./checkpoints")
     print(dpp.vocabs)
     print(len(dpp.vocabs))
-    #m.train()
-    m.generate("iran deal")
+    m.train()
+    m.generate("donald trump")
 
 if __name__ == "__main__":
     test()

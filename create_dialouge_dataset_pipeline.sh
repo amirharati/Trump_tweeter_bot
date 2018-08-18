@@ -6,16 +6,19 @@
 # update the following vars to generate new datasets
 # e.g. for using a commbined dataset for initilization we need to create question/answers pairs and replace here.
 
+# inputs
 questions=data/trump_tweets_questions.txt
 answers=data/trump_tweets_answers.txt
+# outputs
 questions_bpe=data/trump_tweets_questions.bpe
 answers_bpe=data/trump_tweets_questions.bpe
 selected_voc=data/trump_tweets_selected_voc.txt
-words2ids=data/trump_tweets_word22ids.txt
+words2ids=data/trump_tweets_words2ids.txt
 wordid_questions=data/trump_tweets_wordid_questions.txt
 wordid_answers=data/trump_tweets_wordid_answers.txt
 dict=data/questions_en_bpe.dict
 prefix=qa_word
+# params
 T=500
 
 # create bpe
