@@ -15,14 +15,13 @@
     8- add train example with  removed <UNK> all together
     9- use some normal  (but large) ENglish text to pretrain the models for a while. perhaps use dialoug like move subs? This help to improve
     generalization somewhat and model learn better English and will be able to go beyond trump tweets
-    10- create a script for all steps of data prep.
+    10- create a script for all steps of data prep.: sort of done two pipelines
     https://www.cs.cornell.edu/~cristian/Cornell_Movie-Dialogs_Corpus.html
     perhaps we only trian on some specfic charecters? so it become a hybrid trump bot (think of some funny/crazy charecters)
     11- perhaps we can allow the stop words just remove very rare words from input and make them <UNK>
     12- make encoder bidirect
 
-    BUG:
-    <UNK> disapeard
+   
     
     seq2seq/attention
     https://towardsdatascience.com/memory-attention-sequences-37456d271992
@@ -36,6 +35,8 @@
     https://aws.amazon.com/blogs/machine-learning/how-to-deploy-deep-learning-models-with-aws-lambda-and-tensorflow/
     https://medium.com/tooso/serving-tensorflow-predictions-with-python-and-aws-lambda-facb4ab87ddd
     use cloud ml engine?
+    https://github.com/GoogleCloudPlatform/training-data-analyst  check the  training-data-analyst/courses/machine_learning/cloudmle
+
 
 """
 
@@ -201,16 +202,30 @@ class TwitterBot:
             answer_sequence, vocab_size=vocab_size, embed_dim=embedding_size, scope='embed', reuse=True)
         with tf.variable_scope('embed', reuse=True):
             embeddings = tf.get_variable('embeddings')
-        icells = []
+        fcells = []
         for i in range(num_layers):
             c = tf.nn.rnn_cell.GRUCell(model_size)
             c = tf.nn.rnn_cell.DropoutWrapper(c, input_keep_prob=keep_prob,
                                             output_keep_prob=keep_prob)
-            icells.append(c)
+            fcells.append(c)
         # I cant figure out how to use tuple version.    
-        icell = tf.nn.rnn_cell.MultiRNNCell(icells)
+        fcell = tf.nn.rnn_cell.MultiRNNCell(fcells)
+
+        #bcells = []
+        #for i in range(num_layers):
+        #    c = tf.nn.rnn_cell.GRUCell(model_size)
+        #    c = tf.nn.rnn_cell.DropoutWrapper(c, input_keep_prob=keep_prob,
+        #                                    output_keep_prob=keep_prob)
+        #    bcells.append(c)
+        # I cant figure out how to use tuple version.    
+        #bcell = tf.nn.rnn_cell.MultiRNNCell(bcells)
+
+        bcell = tf.contrib.rnn.GRUCell(num_units=model_size)
+
         #icell = tf.contrib.rnn.GRUCell(num_units=model_size)
-        encoder_outputs, encoder_final_state = tf.nn.dynamic_rnn(icell, question_embed, sequence_length=question_lengths, dtype=tf.float32)
+        encoder_outputs, encoder_final_state = tf.nn.bidirectional_dynamic_rnn(fcell, bcell, question_embed, sequence_length=question_lengths, dtype=tf.float32)
+
+
 
         # helpers
         train_helper = tf.contrib.seq2seq.TrainingHelper(answer_embed, answer_lengths, time_major=False)
@@ -235,7 +250,7 @@ class TwitterBot:
         def decode(helper, scope, output_max_length,reuse=None):
             with tf.variable_scope(scope, reuse=reuse):
                 attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
-                    num_units=model_size, memory=encoder_outputs,
+                    num_units=model_size, memory=encoder_outputs[0],
                     memory_sequence_length=question_lengths)
                 #cell = tf.contrib.rnn.GRUCell(num_units=model_size)
                 attn_cell = tf.contrib.seq2seq.AttentionWrapper(
@@ -310,15 +325,15 @@ def test():
     dpp = SDP.Seq2SeqDataPreppy("qa_word", "./data/trump_tweets_words2ids.txt", "./data/trump_tweets_wordid_questions.txt",
      "./data/trump_tweets_wordid_answers.txt", "./data")
     m = TwitterBot(model_size=256, embedding_size=100, num_layers=2,
-         keep_prob=.98, batch_size=32, num_itr=100, vocabs=dpp.vocabs, reverse_vocabs=dpp.reverse_vocabs,
+         keep_prob=.98, batch_size=32, num_itr=2000, vocabs=dpp.vocabs, reverse_vocabs=dpp.reverse_vocabs,
          en_bpe_dict="./data/questions_en_bpe.dict", 
          train_tfrecords='./data/qa_word-train.tfrecord',
          eval_tfrecords='./data/qa_word-val.tfrecord',
          model_dir="./checkpoints")
     print(dpp.vocabs)
     print(len(dpp.vocabs))
-    m.train()
-    m.generate("donald trump")
+    #m.train()
+    m.generate("iran deal")
 
 if __name__ == "__main__":
     test()
